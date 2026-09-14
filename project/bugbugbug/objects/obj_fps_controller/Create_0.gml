@@ -55,6 +55,7 @@ muzzle_flash_frames = 0;
 hit_marker_frames = 0;
 damage_flash_frames = 0;
 recoil = 0;
+dash = fps_dash_create_state();
 
 /// Owns desktop pointer capture so every state transition handles it the same way.
 set_mouse_capture = method(id, function(_captured) {
@@ -142,6 +143,7 @@ start_run = method(id, function(_seed) {
 	lore_open = false;
 	lore_index = -1;
 	loadout = fps_weapon_create_loadout();
+	dash = fps_dash_create_state();
 	pickups = fps_weapon_create_pickups(sector, sector_seed);
 	encounter_plan = {entries: [], signature: ""};
 	room_complete = true;
@@ -163,6 +165,7 @@ advance_room = method(id, function() {
 	}
 
 	clear_room_instances();
+	dash = fps_dash_create_state();
 	run_contract = fps_run_advance_room(run_contract);
 	sync_run_contract();
 	var _tile = sector.tiles[run_room_index];
@@ -224,6 +227,7 @@ finish_encounter = method(id, function(_terminal_phase) {
 /// Returns the title screen with the selected seed available for the next run.
 show_title = method(id, function(_seed) {
 	clear_room_instances();
+	dash = fps_dash_create_state();
 	phase = FPS_STATE_PLAYING;
 	seed_input = string(fps_run_normalize_seed(_seed));
 	run_contract = fps_run_create_state(real(seed_input));
@@ -292,7 +296,7 @@ refresh_terminal_phase = method(id, function() {
 
 /// Applies enemy damage only while the encounter is active.
 take_damage = method(id, function(_amount) {
-	if (phase == FPS_STATE_PLAYING) {
+	if (phase == FPS_STATE_PLAYING && !fps_dash_blocks_damage(dash)) {
 		current_health = fps_apply_damage(current_health, _amount);
 		damage_flash_frames = 12;
 		refresh_terminal_phase();

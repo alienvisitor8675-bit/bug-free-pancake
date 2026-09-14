@@ -82,6 +82,37 @@ suite(function() {
 });
 
 suite(function() {
+	describe("Phase Dash combat mobility", function() {
+		it("starts ready, normalizes direction, and blocks damage while phasing", function() {
+			var _dash = fps_dash_create_state();
+			expect(fps_dash_ready(_dash)).toBeTruthy();
+			expect(fps_dash_start(_dash, 3, 4)).toBeTruthy();
+			expect(round(point_distance(0, 0, _dash.direction_x, _dash.direction_y) * 1000)).toBe(1000);
+			expect(fps_dash_is_active(_dash)).toBeTruthy();
+			expect(fps_dash_blocks_damage(_dash)).toBeTruthy();
+			var _movement = fps_dash_movement(_dash);
+			expect(round(point_distance(0, 0, _movement[0], _movement[1]) * 1000)).toBe(18000);
+		});
+
+		it("rejects retriggers, expires, and recharges from a fresh state", function() {
+			var _dash = fps_dash_create_state();
+			expect(fps_dash_start(_dash, 1, 0)).toBeTruthy();
+			expect(fps_dash_start(_dash, 0, 1)).toBeFalsy();
+			for (var _active_frame = 0; _active_frame < FPS_DASH_ACTIVE_FRAMES; _active_frame += 1) {
+				_dash = fps_dash_tick(_dash);
+			}
+			expect(fps_dash_is_active(_dash)).toBeFalsy();
+			expect(fps_dash_ready(_dash)).toBeFalsy();
+			for (var _cooldown_frame = 0; _cooldown_frame < FPS_DASH_COOLDOWN_FRAMES; _cooldown_frame += 1) {
+				_dash = fps_dash_tick(_dash);
+			}
+			expect(fps_dash_ready(_dash)).toBeTruthy();
+			expect(fps_dash_start(_dash, 0, 0)).toBeFalsy();
+		});
+	});
+});
+
+suite(function() {
 	describe("Weapon arsenal and pickup economy", function() {
 		it("defines four materially different usable weapon contracts", function() {
 			var _pulse = fps_weapon_definition(FPS_WEAPON_PULSE);

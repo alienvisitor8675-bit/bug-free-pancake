@@ -52,6 +52,13 @@ if (loadout.overcharge_frames > 0) {
 	draw_set_color(make_color_rgb(118, 224, 255));
 	draw_text(40, 168, "OVERCHARGE  " + string(ceil(loadout.overcharge_frames / 60)) + "s");
 }
+draw_set_color(fps_dash_is_active(dash) ? make_color_rgb(255, 226, 150) : make_color_rgb(184, 199, 216));
+var _dash_status = fps_dash_is_active(dash)
+	? "PHASE DASH  PHASING"
+	: fps_dash_ready(dash)
+		? "PHASE DASH  READY [SPACE]"
+		: "PHASE DASH  RECHARGING " + string(ceil(dash.cooldown_frames / 60)) + "s";
+draw_text(40, 188, _dash_status);
 
 var _tile_index = fps_sector_tile_at(sector, x, y);
 var _tile_label = _tile_index >= 0 ? sector.tiles[_tile_index].role_name : "TRANSIT";
@@ -154,7 +161,7 @@ draw_set_color(make_color_rgb(184, 199, 216));
 draw_text(
 	_center_x,
 	_gui_height - 34,
-	"WASD MOVE   •   MOUSE AIM   •   CLICK FIRE   •   1-4/Q SWITCH   •   R RELOAD   •   E INTERACT   •   N NEW SEED   •   ESC RELEASE"
+	"WASD MOVE   •   SPACE DASH   •   MOUSE AIM   •   CLICK FIRE   •   1-4/Q SWITCH   •   R RELOAD   •   E INTERACT   •   N NEW SEED   •   ESC RELEASE"
 );
 
 if (phase == FPS_STATE_PLAYING && pickup_notice_frames > 0) {

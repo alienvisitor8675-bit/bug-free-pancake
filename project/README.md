@@ -8,6 +8,7 @@ and a victory or death summary.
 Controls:
 
 - `WASD`: move
+- `Space`: Phase Dash in the movement or facing direction; briefly ignores damage while recharging
 - Mouse: aim
 - Left click: fire the equipped weapon
 - `1`-`4` or `Q`: switch among acquired weapons
