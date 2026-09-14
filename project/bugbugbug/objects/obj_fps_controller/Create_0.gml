@@ -25,6 +25,7 @@ sector = fps_sector_generate(
 	wall_height
 );
 global.fps_sector = sector;
+global.fps_run_paused = false;
 x = sector.start_socket.x;
 y = sector.start_socket.y;
 lore_entries = fps_create_lore_entries();
@@ -69,6 +70,31 @@ sync_run_contract = method(id, function() {
 	run_state = run_contract.phase;
 	run_room_index = run_contract.room_index;
 	room_complete = run_contract.room_complete;
+	global.fps_run_paused = run_state == FPS_RUN_PAUSED;
+});
+
+/// Pauses the active run and releases pointer capture without changing gameplay state.
+pause_run = method(id, function() {
+	if (run_state != FPS_RUN_PLAYING || phase != FPS_STATE_PLAYING || !run_started) {
+		return false;
+	}
+
+	run_contract = fps_run_pause(run_contract);
+	sync_run_contract();
+	set_mouse_capture(false);
+	return true;
+});
+
+/// Resumes a paused run and restores pointer capture for gameplay input.
+resume_run = method(id, function() {
+	if (run_state != FPS_RUN_PAUSED || phase != FPS_STATE_PLAYING || !run_started) {
+		return false;
+	}
+
+	run_contract = fps_run_resume(run_contract);
+	sync_run_contract();
+	set_mouse_capture(true);
+	return true;
 });
 
 /// Destroys only transient enemies and projectiles when a room or run changes.
@@ -296,7 +322,7 @@ refresh_terminal_phase = method(id, function() {
 
 /// Applies enemy damage only while the encounter is active.
 take_damage = method(id, function(_amount) {
-	if (phase == FPS_STATE_PLAYING && !fps_dash_blocks_damage(dash)) {
+	if (phase == FPS_STATE_PLAYING && run_state == FPS_RUN_PLAYING && !fps_dash_blocks_damage(dash)) {
 		current_health = fps_apply_damage(current_health, _amount);
 		damage_flash_frames = 12;
 		refresh_terminal_phase();

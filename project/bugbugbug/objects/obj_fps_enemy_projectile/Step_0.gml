@@ -4,7 +4,11 @@ if (!instance_exists(_player) || _player.phase != FPS_STATE_PLAYING) {
 	exit;
 }
 
-// Projectiles pause with the enemies while desktop input is released.
+if (variable_global_exists("fps_run_paused") && global.fps_run_paused) {
+	exit;
+}
+
+// Projectiles pause with the encounter while the run is paused or input is released.
 if (!_player.mouse_captured || !window_has_focus()) {
 	exit;
 }

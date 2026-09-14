@@ -4,6 +4,7 @@
 #macro FPS_RUN_SUMMARY 3
 #macro FPS_RUN_ARCHIVE 4
 #macro FPS_RUN_RESET_CONFIRM 5
+#macro FPS_RUN_PAUSED 6
 
 #macro FPS_RUN_REWARD_REPAIR 0
 #macro FPS_RUN_REWARD_AMMO 1
@@ -44,6 +45,31 @@ function fps_run_begin(_seed) {
 	_state.phase = FPS_RUN_PLAYING;
 	_state.room_complete = true;
 	return _state;
+}
+
+/// Pauses an active run without changing its room or gameplay progress.
+function fps_run_pause(_state) {
+	if (_state.phase != FPS_RUN_PLAYING) {
+		return false;
+	}
+
+	_state.phase = FPS_RUN_PAUSED;
+	return true;
+}
+
+/// Resumes only a run that was explicitly paused.
+function fps_run_resume(_state) {
+	if (_state.phase != FPS_RUN_PAUSED) {
+		return false;
+	}
+
+	_state.phase = FPS_RUN_PLAYING;
+	return true;
+}
+
+/// Reports whether gameplay simulation is allowed to advance for this run.
+function fps_run_simulation_active(_state) {
+	return _state.phase == FPS_RUN_PLAYING;
 }
 
 /// Advances to exactly one next generated tile after the current tile is complete.
