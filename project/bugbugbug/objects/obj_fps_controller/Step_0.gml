@@ -1,4 +1,5 @@
 fps_weapon_tick(loadout);
+dash = fps_dash_tick(dash);
 pickup_notice_frames = max(0, pickup_notice_frames - 1);
 pickup_spin = (pickup_spin + 3) mod 360;
 muzzle_flash_frames = max(0, muzzle_flash_frames - 1);
@@ -219,7 +220,21 @@ pitch = clamp(pitch - _mouse_delta_y * mouse_sensitivity, -72, 72);
 
 var _forward_input = keyboard_check(ord("W")) - keyboard_check(ord("S"));
 var _strafe_input = keyboard_check(ord("D")) - keyboard_check(ord("A"));
+if (keyboard_check_pressed(vk_space)) {
+	var _dash_direction = fps_movement_vector(yaw, _forward_input, _strafe_input, 1);
+	if (_dash_direction[0] == 0 && _dash_direction[1] == 0) {
+		_dash_direction = fps_movement_vector(yaw, 1, 0, 1);
+	}
+	if (fps_dash_start(dash, _dash_direction[0], _dash_direction[1])) {
+		set_pickup_notice("PHASE DASH // INVULNERABLE");
+	} else if (!fps_dash_ready(dash)) {
+		set_pickup_notice("PHASE DASH RECHARGING");
+	}
+}
 var _movement = fps_movement_vector(yaw, _forward_input, _strafe_input, move_speed);
+if (fps_dash_is_active(dash)) {
+	_movement = fps_dash_movement(dash);
+}
 var _position = fps_sector_move_position(
 	sector,
 	x,
