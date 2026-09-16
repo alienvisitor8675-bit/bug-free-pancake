@@ -79,6 +79,54 @@ draw_text(
 		+ "   ARCHIVES " + string(_archive_count) + " / " + string(FPS_SECTOR_TILE_COUNT)
 );
 
+if (run_state == FPS_RUN_PLAYING) {
+	var _route_entries = fps_sector_route_entries(sector, run_room_index, run_contract.room_complete);
+	var _route_count = array_length(_route_entries);
+	var _route_left = 380;
+	var _route_top = 228;
+	var _route_gap = 8;
+	var _route_card_width = (
+		_gui_width - _route_left - 40 - _route_gap * max(0, _route_count - 1)
+	) / max(1, _route_count);
+
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+	draw_set_color(make_color_rgb(4, 10, 18));
+	draw_rectangle(_route_left - 16, _route_top - 28, _gui_width - 28, _route_top + 64, false);
+	draw_set_color(make_color_rgb(184, 199, 216));
+	draw_text(_route_left, _route_top - 22, "CONTAINMENT ROUTE  //  SEED " + string(sector_seed));
+
+	for (var _route_index = 0; _route_index < _route_count; _route_index += 1) {
+		var _route_entry = _route_entries[_route_index];
+		var _card_left = _route_left + _route_index * (_route_card_width + _route_gap);
+		var _card_right = _card_left + _route_card_width;
+		var _marker_colour = _route_entry.is_current
+			? make_color_rgb(255, 226, 150)
+			: _route_entry.is_next
+				? make_color_rgb(118, 224, 255)
+				: _route_entry.is_finale
+					? make_color_rgb(189, 120, 255)
+					: _route_entry.is_cleared
+						? make_color_rgb(98, 255, 176)
+						: make_color_rgb(103, 118, 136);
+
+		draw_set_color(make_color_rgb(14, 29, 43));
+		draw_rectangle(_card_left, _route_top, _card_right, _route_top + 52, false);
+		draw_set_color(_marker_colour);
+		draw_rectangle(_card_left, _route_top, _card_right, _route_top + 4, false);
+		draw_set_halign(fa_center);
+		draw_text((_card_left + _card_right) * 0.5, _route_top + 10, _route_entry.status);
+		draw_set_color(_route_entry.is_finale ? make_color_rgb(211, 170, 255) : c_white);
+		draw_text(
+			(_card_left + _card_right) * 0.5,
+			_route_top + 30,
+			string(_route_entry.index + 1) + "  " + _route_entry.role_name
+		);
+	}
+
+	draw_set_halign(fa_left);
+}
+
 var _enemy_count = instance_number(obj_fps_enemy);
 var _enemy_row = 0;
 for (var _enemy_index = 0; _enemy_index < _enemy_count; _enemy_index += 1) {

@@ -350,6 +350,54 @@ suite(function() {
 });
 
 suite(function() {
+	describe("Sector HUD route projection", function() {
+		it("keeps generated role order and marks current, cleared, and next spaces", function() {
+			var _sector = fps_sector_generate(97531, 1366, 768, 24, 200);
+			var _route = fps_sector_route_entries(_sector, 2, true);
+
+			expect(array_length(_route)).toBe(FPS_SECTOR_TILE_COUNT);
+			for (var _tile_index = 0; _tile_index < FPS_SECTOR_TILE_COUNT; _tile_index += 1) {
+				expect(_route[_tile_index].id).toBe(_sector.tiles[_tile_index].id);
+				expect(_route[_tile_index].index).toBe(_tile_index);
+				expect(_route[_tile_index].role_name).toBe(_sector.tiles[_tile_index].role_name);
+			}
+
+			expect(_route[0].is_cleared).toBeTruthy();
+			expect(_route[1].is_cleared).toBeTruthy();
+			expect(_route[2].is_current).toBeTruthy();
+			expect(_route[2].status).toBe("CURRENT");
+			expect(_route[3].is_next).toBeTruthy();
+			expect(_route[3].status).toBe("NEXT");
+			expect(_route[5].is_finale).toBeTruthy();
+			expect(_route[5].status).toBe("FINALE");
+		});
+
+		it("only exposes the next space after a clear and resets across seeded sectors", function() {
+			var _seed = 13579;
+			var _sector = fps_sector_generate(_seed, 1366, 768, 24, 200);
+			var _blocked_route = fps_sector_route_entries(_sector, 4, false);
+			var _cleared_route = fps_sector_route_entries(_sector, 4, true);
+			var _repeat_sector = fps_sector_generate(_seed, 1366, 768, 24, 200);
+			var _different_sector = fps_sector_generate(24680, 1366, 768, 24, 200);
+
+			expect(_blocked_route[5].is_next).toBeFalsy();
+			expect(_blocked_route[5].status).toBe("FINALE");
+			expect(_cleared_route[5].is_next).toBeTruthy();
+			expect(_cleared_route[5].is_finale).toBeTruthy();
+			expect(_cleared_route[5].status).toBe("NEXT / FINALE");
+			expect(_repeat_sector.layout_signature).toBe(_sector.layout_signature);
+			expect(_different_sector.layout_signature != _sector.layout_signature).toBeTruthy();
+
+			var _reset_route = fps_sector_route_entries(_repeat_sector, 0, false);
+			expect(_reset_route[0].is_current).toBeTruthy();
+			expect(_reset_route[0].status).toBe("CURRENT");
+			expect(_reset_route[1].is_cleared).toBeFalsy();
+			expect(_reset_route[1].is_next).toBeFalsy();
+		});
+	});
+});
+
+suite(function() {
 	describe("Seeded enemy roster and encounter director", function() {
 		it("defines distinct readable roles including a durable finale threat", function() {
 			var _burrower = fps_enemy_role_definition(FPS_ENEMY_KIND_BURROWER);
