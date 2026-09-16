@@ -14,7 +14,7 @@ Controls:
 - `1`-`4` or `Q`: switch among acquired weapons
 - `R`: reload during play; restart the current seed after a summary
 - `E`: collect a nearby supply cache, read an archive entry, close the archive panel, or enter the next space
-- `Esc`: release or recapture the mouse during play; close a lore panel
+- `Esc`: pause or resume an active run; close a lore panel
 - `Enter`: begin the selected seed or confirm a summary action
 - `S`: edit the numeric seed; `N`: choose a random seed or return to the title with one
 - `A`: reread discovered archives from the title or summary; `X`: reset the profile after confirmation

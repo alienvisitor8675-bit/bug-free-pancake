@@ -1,3 +1,7 @@
+if (variable_global_exists("fps_run_paused") && global.fps_run_paused) {
+	exit;
+}
+
 hit_flash_frames = max(0, hit_flash_frames - 1);
 
 if (!alive) {

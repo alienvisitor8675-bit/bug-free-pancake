@@ -1,11 +1,13 @@
-fps_weapon_tick(loadout);
-dash = fps_dash_tick(dash);
-pickup_notice_frames = max(0, pickup_notice_frames - 1);
-pickup_spin = (pickup_spin + 3) mod 360;
-muzzle_flash_frames = max(0, muzzle_flash_frames - 1);
-hit_marker_frames = max(0, hit_marker_frames - 1);
-damage_flash_frames = max(0, damage_flash_frames - 1);
-recoil = max(0, recoil - 0.18);
+if (run_state != FPS_RUN_PAUSED) {
+	fps_weapon_tick(loadout);
+	dash = fps_dash_tick(dash);
+	pickup_notice_frames = max(0, pickup_notice_frames - 1);
+	pickup_spin = (pickup_spin + 3) mod 360;
+	muzzle_flash_frames = max(0, muzzle_flash_frames - 1);
+	hit_marker_frames = max(0, hit_marker_frames - 1);
+	damage_flash_frames = max(0, damage_flash_frames - 1);
+	recoil = max(0, recoil - 0.18);
+}
 
 if (run_state == FPS_RUN_RESET_CONFIRM) {
 	if (keyboard_check_pressed(vk_enter)) {
@@ -21,6 +23,13 @@ if (run_state == FPS_RUN_RESET_CONFIRM) {
 		run_contract = fps_run_create_state(real(seed_input));
 		sync_run_contract();
 		set_mouse_capture(false);
+	}
+	exit;
+}
+
+if (run_state == FPS_RUN_PAUSED) {
+	if (keyboard_check_pressed(vk_escape)) {
+		resume_run();
 	}
 	exit;
 }
@@ -165,7 +174,9 @@ if (keyboard_check_pressed(ord("N"))) {
 }
 
 if (keyboard_check_pressed(vk_escape)) {
-	set_mouse_capture(!mouse_captured);
+	if (pause_run()) {
+		exit;
+	}
 }
 
 if (!window_has_focus()) {

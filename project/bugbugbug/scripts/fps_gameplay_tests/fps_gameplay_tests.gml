@@ -543,6 +543,73 @@ suite(function() {
 });
 
 suite(function() {
+	describe("Run pause contract", function() {
+		it("freezes simulation state and restores it on resume", function() {
+			var _state = fps_run_begin(314159);
+			_state.room_index = 3;
+			_state.rooms_cleared = 2;
+			_state.room_complete = false;
+			expect(fps_run_simulation_active(_state)).toBeTruthy();
+
+			expect(fps_run_pause(_state)).toBeTruthy();
+			expect(_state.phase).toBe(FPS_RUN_PAUSED);
+			expect(fps_run_simulation_active(_state)).toBeFalsy();
+			expect(_state.seed).toBe(314159);
+			expect(_state.room_index).toBe(3);
+			expect(_state.rooms_cleared).toBe(2);
+			expect(_state.room_complete).toBeFalsy();
+			expect(fps_run_pause(_state)).toBeFalsy();
+
+			expect(fps_run_resume(_state)).toBeTruthy();
+			expect(_state.phase).toBe(FPS_RUN_PLAYING);
+			expect(fps_run_simulation_active(_state)).toBeTruthy();
+			expect(_state.room_index).toBe(3);
+			expect(_state.rooms_cleared).toBe(2);
+		});
+
+		it("rejects pause transitions outside active gameplay", function() {
+			var _title = fps_run_create_state(12345);
+			expect(fps_run_pause(_title)).toBeFalsy();
+			expect(fps_run_resume(_title)).toBeFalsy();
+
+			var _summary = fps_run_finish(fps_run_begin(12345), FPS_STATE_VICTORY);
+			expect(fps_run_pause(_summary)).toBeFalsy();
+			expect(fps_run_resume(_summary)).toBeFalsy();
+
+			var _restart = fps_run_begin(_summary.seed);
+			expect(_restart.phase).toBe(FPS_RUN_PLAYING);
+			expect(fps_run_simulation_active(_restart)).toBeTruthy();
+		});
+
+		it("syncs the controller pause gate without changing terminal state", function() {
+			var _controller = instance_find(obj_fps_controller, 0);
+			var _previous_contract = _controller.run_contract;
+			var _previous_phase = _controller.phase;
+			var _previous_run_started = _controller.run_started;
+			var _previous_mouse_captured = _controller.mouse_captured;
+
+			_controller.run_contract = fps_run_begin(24680);
+			_controller.phase = FPS_STATE_PLAYING;
+			_controller.run_started = true;
+			_controller.sync_run_contract();
+			expect(_controller.pause_run()).toBeTruthy();
+			expect(_controller.run_state).toBe(FPS_RUN_PAUSED);
+			expect(global.fps_run_paused).toBeTruthy();
+			expect(_controller.phase).toBe(FPS_STATE_PLAYING);
+			expect(_controller.resume_run()).toBeTruthy();
+			expect(_controller.run_state).toBe(FPS_RUN_PLAYING);
+			expect(global.fps_run_paused).toBeFalsy();
+
+			_controller.run_contract = _previous_contract;
+			_controller.phase = _previous_phase;
+			_controller.run_started = _previous_run_started;
+			_controller.sync_run_contract();
+			_controller.set_mouse_capture(_previous_mouse_captured);
+		});
+	});
+});
+
+suite(function() {
 	describe("Versioned persistent profile", function() {
 		it("round trips stable lore and unlock identities", function() {
 			var _profile = fps_profile_defaults();
