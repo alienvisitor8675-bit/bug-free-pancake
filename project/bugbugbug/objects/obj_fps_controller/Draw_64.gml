@@ -161,10 +161,10 @@ draw_set_color(make_color_rgb(184, 199, 216));
 draw_text(
 	_center_x,
 	_gui_height - 34,
-	"WASD MOVE   •   SPACE DASH   •   MOUSE AIM   •   CLICK FIRE   •   1-4/Q SWITCH   •   R RELOAD   •   E INTERACT   •   N NEW SEED   •   ESC RELEASE"
+	"WASD MOVE   •   SPACE DASH   •   MOUSE AIM   •   CLICK FIRE   •   1-4/Q SWITCH   •   R RELOAD   •   E INTERACT   •   N NEW SEED   •   ESC PAUSE"
 );
 
-if (phase == FPS_STATE_PLAYING && pickup_notice_frames > 0) {
+if (phase == FPS_STATE_PLAYING && run_state == FPS_RUN_PLAYING && pickup_notice_frames > 0) {
 	draw_set_alpha(0.78);
 	draw_set_color(c_black);
 	draw_rectangle(_center_x - 250, _center_y - 158, _center_x + 250, _center_y - 118, false);
@@ -184,6 +184,16 @@ if (phase != FPS_STATE_PLAYING) {
 	draw_text(_center_x, _center_y - 28, phase == FPS_STATE_VICTORY ? "ROOM SECURED" : "YOU DIED");
 	draw_set_color(c_white);
 	draw_text(_center_x, _center_y + 20, "PRESS R TO RESTART");
+} else if (run_state == FPS_RUN_PAUSED) {
+	draw_set_alpha(0.78);
+	draw_set_color(c_black);
+	draw_rectangle(_center_x - 250, _center_y - 64, _center_x + 250, _center_y + 64, false);
+	draw_set_alpha(1);
+	draw_set_color(make_color_rgb(255, 226, 150));
+	draw_set_valign(fa_middle);
+	draw_text(_center_x, _center_y - 18, "RUN PAUSED");
+	draw_set_color(c_white);
+	draw_text(_center_x, _center_y + 24, "PRESS ESC TO RESUME");
 } else if (!mouse_captured) {
 	draw_set_alpha(0.65);
 	draw_set_color(c_black);
@@ -194,7 +204,7 @@ if (phase != FPS_STATE_PLAYING) {
 	draw_text(_center_x, _center_y, "CLICK TO CAPTURE MOUSE");
 }
 
-if (phase == FPS_STATE_PLAYING && !lore_open) {
+if (phase == FPS_STATE_PLAYING && run_state == FPS_RUN_PLAYING && !lore_open) {
 	var _near_pickup = fps_weapon_near_pickup(pickups, x, y, FPS_WEAPON_PICKUP_RANGE);
 	if (_near_pickup >= 0) {
 		var _pickup = pickups[_near_pickup];
