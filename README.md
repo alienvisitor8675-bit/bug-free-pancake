@@ -11,15 +11,28 @@ Open [project/bugbugbug/bugbugbug.yyp](project/bugbugbug/bugbugbug.yyp) in
 GameMaker to play. See [project/README.md](project/README.md) for controls and
 the current gameplay and asset overview.
 
-The repository also provides a governed workflow for auditable agent changes
-while humans retain authority over high-risk and release decisions.
+The repository also provides a governed workflow and machine-verifiable checks
+for auditable agent changes, while humans retain authority over high-risk and
+release decisions.
 
 ## Governance overview (non-normative)
 
-This README is a user-facing summary, not a source of rules. The authoritative
-workflow and rationale live in [GOVERNANCE.md](GOVERNANCE.md#authority), while
-[PROJECT_POLICY.toml](PROJECT_POLICY.toml) owns executable paths, formats,
-limits, and risk patterns.
+This overview is navigation only. The authoritative workflow and rationale live
+in [GOVERNANCE.md](GOVERNANCE.md#authority), executable values live in
+[PROJECT_POLICY.toml](PROJECT_POLICY.toml), and task routing starts in
+[AGENTS.md](AGENTS.md#authority-and-task-routing).
+
+## What it provides
+
+- the playable Containment Protocol project and its governed production routes;
+- authoritative workflow rules in [GOVERNANCE.md](GOVERNANCE.md#authority);
+- executable paths, asset formats, storage rules, and risk limits in
+  [PROJECT_POLICY.toml](PROJECT_POLICY.toml);
+- repository-policy, asset, storage, CI, and issue-contract tooling under
+  [the tools directory](tools/setup_github.py);
+- GitHub workflows, issue/PR support, and repository-local Codex skills and
+  automation prompt templates; and
+- adoption, policy-update, and resumable [setup](docs/SETUP.md) procedures.
 
 Normal agent-governed work starts with one coherent implementation issue.
 Broader requests split only when they contain independently meaningful
@@ -49,7 +62,19 @@ Human-created work uses a separate protected lane that agents do not modify.
 
 ## Start here
 
-Use [project/README.md](project/README.md) to run the game. Follow
-[docs/SETUP.md](docs/SETUP.md) for repository setup and maintenance. For
-day-to-day work, [AGENTS.md](AGENTS.md#authority-and-task-routing) routes each
-task to only the governance sections and local skill it needs.
+Use [project/README.md](project/README.md) to run the game. For repository
+setup and maintenance, choose the route that matches the repository state:
+
+- a valid GameMaker project with no meaningful governance uses the
+  [greenfield setup](docs/SETUP.md);
+- an existing repository with independent governance, earlier framework
+  lineage, or uncertain history uses the read-only
+  [brownfield adoption plan](docs/ADOPTION.md); and
+- an already-adopted repository taking a newer upstream policy uses the
+  [bounded policy-update procedure](docs/POLICY_UPDATE.md).
+
+For day-to-day work, [AGENTS.md](AGENTS.md#authority-and-task-routing) routes
+each task to only the governance sections and local skill it needs. High-risk
+and manual-path review, readiness, and merge are authority gates; they do not
+add manual, visual, live, or experiential validation unless the accepted issue
+contract explicitly requires that judgment.

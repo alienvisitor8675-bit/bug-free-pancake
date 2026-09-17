@@ -30,8 +30,12 @@ because the repository is governed.
 
 ## Tooling
 
-Repository tooling requires Python 3.12 or later. Use `python3.12` for policy
-and test commands.
+Repository tooling requires Python 3.12 or later. Use
+`python3 tools/ci/run_repository_checks.py` for dependency-sensitive policy
+and test commands; it follows the repository's explicit interpreter, a
+validated `.venv`, a compatible ambient interpreter with the pinned
+dependencies, and then a bounded isolated environment. Standalone commands
+must likewise use any compatible Python 3.12-or-later interpreter.
 
 ## Standing permission
 
@@ -39,8 +43,14 @@ On the current issue-scoped branch, agents may commit each coherent milestone
 after [Stage 1 evidence](GOVERNANCE.md#stage-1-milestone-evidence), push it, and
 open or update its draft PR under
 [Milestone commits and draft publication](GOVERNANCE.md#milestone-commits-and-draft-publication).
-That permission does not grant completion, readiness, merge, release, or
-publication authority.
+That permission does not grant readiness, merge, release, or publication
+authority. Completion metadata remains an evidence-backed transition under
+the [Completion transition](GOVERNANCE.md#completion-transition). A scheduled
+worker may carry eligible low-risk work through whole-issue Stage 2 evidence,
+the immediate pre-transition issue re-fetch, completion metadata, and fresh
+Stage 3 evidence; existing low-risk automation owns readiness and squash
+auto-merge, while high-risk and manual-path work waits for human review,
+readiness, and merge.
 
 ## Critical stops
 
