@@ -73,6 +73,52 @@ sync_run_contract = method(id, function() {
 	global.fps_run_paused = run_state == FPS_RUN_PAUSED;
 });
 
+/// Awards a defeated enemy from its generated room and socket identity.
+award_enemy_score = method(id, function(_enemy) {
+	if (
+		run_state != FPS_RUN_PLAYING
+		|| phase != FPS_STATE_PLAYING
+		|| !instance_exists(_enemy)
+		|| !variable_instance_exists(_enemy, "enemy_kind")
+		|| !variable_instance_exists(_enemy, "spawn_tile_index")
+		|| !variable_instance_exists(_enemy, "spawn_socket_id")
+		|| _enemy.spawn_tile_index < 0
+		|| _enemy.spawn_tile_index >= array_length(sector.tiles)
+		|| string_length(_enemy.spawn_socket_id) <= 0
+	) {
+		return false;
+	}
+
+	var _room_id = sector.tiles[_enemy.spawn_tile_index].id;
+	var _award = fps_run_award_enemy(
+		run_contract,
+		_enemy.enemy_kind,
+		_room_id,
+		_enemy.spawn_socket_id
+	);
+	sync_run_contract();
+	return _award.awarded;
+});
+
+/// Awards the current generated tile at its existing room-clear boundary.
+award_room_score = method(id, function(_is_finale) {
+	if (
+		run_state != FPS_RUN_PLAYING
+		|| run_room_index < 0
+		|| run_room_index >= array_length(sector.tiles)
+	) {
+		return false;
+	}
+
+	var _award = fps_run_award_room(
+		run_contract,
+		sector.tiles[run_room_index].id,
+		_is_finale
+	);
+	sync_run_contract();
+	return _award.awarded;
+});
+
 /// Pauses the active run and releases pointer capture without changing gameplay state.
 pause_run = method(id, function() {
 	if (run_state != FPS_RUN_PLAYING || phase != FPS_STATE_PLAYING || !run_started) {
@@ -135,11 +181,18 @@ spawn_room_encounter = method(id, function() {
 	}
 
 	if (_tile.role != FPS_SECTOR_ROLE_COMBAT && _tile.role != FPS_SECTOR_ROLE_FINALE) {
+		if (_tile.role != FPS_SECTOR_ROLE_START) {
+			award_room_score(false);
+		}
 		run_contract = fps_run_mark_room_complete(run_contract);
 		sync_run_contract();
 	} else if (_entry_count <= 0) {
+		award_room_score(_tile.role == FPS_SECTOR_ROLE_FINALE);
 		run_contract = fps_run_mark_room_complete(run_contract);
 		sync_run_contract();
+		if (_tile.role == FPS_SECTOR_ROLE_FINALE) {
+			refresh_terminal_phase();
+		}
 	}
 });
 
@@ -209,6 +262,7 @@ begin_reward = method(id, function() {
 		return;
 	}
 
+	award_room_score(false);
 	var _choices = fps_run_create_reward_choices(sector_seed, run_room_index, profile);
 	run_contract = fps_run_begin_reward(run_contract, _choices);
 	sync_run_contract();
@@ -237,6 +291,9 @@ choose_reward = method(id, function(_choice_index) {
 /// Ends a run exactly once and persists discoveries and victory unlocks.
 finish_encounter = method(id, function(_terminal_phase) {
 	if (phase == FPS_STATE_PLAYING && run_state != FPS_RUN_SUMMARY) {
+		if (_terminal_phase == FPS_STATE_VICTORY) {
+			award_room_score(true);
+		}
 		phase = _terminal_phase;
 		summary_reason = _terminal_phase == FPS_STATE_VICTORY
 			? "THE SIGNAL CORE IS SECURED"

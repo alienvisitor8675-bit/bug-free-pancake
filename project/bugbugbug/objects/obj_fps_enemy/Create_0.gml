@@ -1,5 +1,7 @@
 fps_enemy_apply_role(id, FPS_ENEMY_KIND_CHASER);
 hit_flash_frames = 0;
+spawn_socket_id = "";
+spawn_tile_index = -1;
 
 var _player = instance_find(obj_fps_controller, 0);
 if (instance_exists(_player) && variable_instance_exists(_player, "sector")) {
@@ -10,7 +12,7 @@ if (instance_exists(_player) && variable_instance_exists(_player, "sector")) {
 	}
 }
 
-/// Applies a weapon hit once and announces victory when health reaches zero.
+/// Applies a weapon hit once, reports a stable defeat award, and announces victory when health reaches zero.
 take_damage = method(id, function(_amount) {
 	if (alive) {
 		current_health = fps_apply_damage(current_health, _amount);
@@ -20,6 +22,7 @@ take_damage = method(id, function(_amount) {
 			alive = false;
 			var _player = instance_find(obj_fps_controller, 0);
 			if (instance_exists(_player)) {
+				_player.award_enemy_score(id);
 				_player.refresh_terminal_phase();
 			}
 		}

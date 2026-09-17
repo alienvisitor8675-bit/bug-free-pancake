@@ -77,6 +77,7 @@ draw_text(
 		+ "   " + _tile_label
 		+ "   SEED " + string(sector_seed)
 		+ "   ARCHIVES " + string(_archive_count) + " / " + string(FPS_SECTOR_TILE_COUNT)
+		+ "   SCORE " + string(run_contract.score)
 );
 
 if (run_state == FPS_RUN_PLAYING) {
@@ -405,7 +406,13 @@ if (run_state == FPS_RUN_SUMMARY) {
 	draw_set_color(c_white);
 	draw_text(_center_x, 164, summary_reason);
 	draw_set_color(make_color_rgb(211, 226, 240));
-	draw_text(_center_x, 228, "SEED " + string(sector_seed) + "   ROOMS CLEARED " + string(run_contract.rooms_cleared));
+	draw_text(
+		_center_x,
+		228,
+		"SEED " + string(sector_seed)
+			+ "   ROOMS CLEARED " + string(run_contract.rooms_cleared)
+			+ "   SCORE " + string(run_contract.score)
+);
 	draw_text(_center_x, 260, "ARCHIVES THIS RUN " + string(fps_profile_discovered_lore_count(profile)) + " / " + string(FPS_PROFILE_LORE_COUNT));
 	draw_set_color(make_color_rgb(184, 199, 216));
 	draw_text(_center_x, 344, "ENTER / R  RESTART SEED     N  TITLE WITH NEW SEED     A  ARCHIVE");
