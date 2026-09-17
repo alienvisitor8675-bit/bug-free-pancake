@@ -27,6 +27,9 @@ The generated sector uses six aligned start, connector, combat, safe, archive,
 and finale spaces. Its solids are shared by rendering, actor movement,
 projectile travel, and hitscan occlusion. Each seed places three weapon caches,
 med gel, an ammo cell, and a temporary overcharge in clear tile positions.
+During an active run, the route strip shows all six generated spaces in order;
+`CURRENT`, `CLEARED`, `NEXT`, and `FINALE` markers track the selected seed as
+rooms change.
 Cleared combat spaces offer three deterministic reward cards. A versioned local
 profile records discoveries, victories, and bounded unlocks; unsupported or
 corrupt profile data falls back to a clean profile.

@@ -527,6 +527,46 @@ function fps_sector_generate(_seed, _width, _height, _wall_thickness, _wall_heig
 	return _sector;
 }
 
+/// Projects generated tiles into the marker state consumed by the route HUD.
+function fps_sector_route_entry(_tile, _current_index, _room_complete) {
+	var _is_current = _tile.index == _current_index;
+	var _is_cleared = _tile.index < _current_index;
+	var _is_next = _room_complete && _tile.index == _current_index + 1;
+	var _is_finale = _tile.role == FPS_SECTOR_ROLE_FINALE;
+	var _status = _is_current
+		? (_is_finale ? "CURRENT / FINALE" : "CURRENT")
+		: _is_cleared
+			? "CLEARED"
+			: _is_next
+				? (_is_finale ? "NEXT / FINALE" : "NEXT")
+				: _is_finale
+					? "FINALE"
+					: "AHEAD";
+
+	return {
+		id: _tile.id,
+		index: _tile.index,
+		role: _tile.role,
+		role_name: _tile.role_name,
+		status: _status,
+		is_current: _is_current,
+		is_cleared: _is_cleared,
+		is_next: _is_next,
+		is_finale: _is_finale,
+	};
+}
+
+/// Keeps route display order identical to the generated sector tile order.
+function fps_sector_route_entries(_sector, _current_index, _room_complete) {
+	var _entries = [];
+	var _tile_count = array_length(_sector.tiles);
+	for (var _tile_index = 0; _tile_index < _tile_count; _tile_index += 1) {
+		array_push(_entries, fps_sector_route_entry(_sector.tiles[_tile_index], _current_index, _room_complete));
+	}
+
+	return _entries;
+}
+
 /// Returns the tile containing a point, or -1 outside the generated strip.
 function fps_sector_tile_at(_sector, _x, _y) {
 	var _tile_count = array_length(_sector.tiles);
