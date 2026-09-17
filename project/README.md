@@ -30,6 +30,9 @@ med gel, an ammo cell, and a temporary overcharge in clear tile positions.
 During an active run, the route strip shows all six generated spaces in order;
 `CURRENT`, `CLEARED`, `NEXT`, and `FINALE` markers track the selected seed as
 rooms change.
+The active HUD and victory or death summary show the run score. Defeated roles
+award fixed points, each cleared generated space awards one room bonus, and the
+finale awards its bonus only on victory; restarting a seed resets the score.
 Cleared combat spaces offer three deterministic reward cards. A versioned local
 profile records discoveries, victories, and bounded unlocks; unsupported or
 corrupt profile data falls back to a clean profile.

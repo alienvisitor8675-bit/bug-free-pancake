@@ -14,6 +14,14 @@
 #macro FPS_RUN_REWARD_VITALS 5
 #macro FPS_RUN_REWARD_LIMIT 3
 
+#macro FPS_RUN_SCORE_CHASER 100
+#macro FPS_RUN_SCORE_RANGED 125
+#macro FPS_RUN_SCORE_BURROWER 150
+#macro FPS_RUN_SCORE_SENTRY 175
+#macro FPS_RUN_SCORE_TITAN 500
+#macro FPS_RUN_SCORE_ROOM_CLEAR 250
+#macro FPS_RUN_SCORE_FINALE_CLEAR 1000
+
 /// Normalizes seed entry without allowing zero to create a broken generator state.
 function fps_run_normalize_seed(_seed) {
 	if (!is_real(_seed)) {
@@ -33,6 +41,9 @@ function fps_run_create_state(_seed) {
 		room_count: FPS_SECTOR_TILE_COUNT,
 		room_complete: false,
 		rooms_cleared: 0,
+		score: 0,
+		enemy_score_awards: [],
+		room_score_awards: [],
 		reward_choices: [],
 		reward_selection: -1,
 		terminal_phase: FPS_STATE_PLAYING,
@@ -45,6 +56,70 @@ function fps_run_begin(_seed) {
 	_state.phase = FPS_RUN_PLAYING;
 	_state.room_complete = true;
 	return _state;
+}
+
+/// Returns the fixed score value for one authored enemy role.
+function fps_run_enemy_score(_kind) {
+	switch (_kind) {
+		case FPS_ENEMY_KIND_CHASER: return FPS_RUN_SCORE_CHASER;
+		case FPS_ENEMY_KIND_RANGED: return FPS_RUN_SCORE_RANGED;
+		case FPS_ENEMY_KIND_BURROWER: return FPS_RUN_SCORE_BURROWER;
+		case FPS_ENEMY_KIND_SENTRY: return FPS_RUN_SCORE_SENTRY;
+		case FPS_ENEMY_KIND_TITAN: return FPS_RUN_SCORE_TITAN;
+	}
+
+	return 0;
+}
+
+/// Returns the fixed bonus for clearing an ordinary room or the finale.
+function fps_run_room_score(_is_finale) {
+	return _is_finale ? FPS_RUN_SCORE_FINALE_CLEAR : FPS_RUN_SCORE_ROOM_CLEAR;
+}
+
+/// Builds the stable identity for one generated enemy socket within a room.
+function fps_run_enemy_award_id(_room_id, _socket_id) {
+	return string(_room_id) + "::" + string(_socket_id);
+}
+
+/// Checks a score ledger without depending on instance creation order.
+function fps_run_has_score_award(_awards, _award_id) {
+	for (var _award_index = 0; _award_index < array_length(_awards); _award_index += 1) {
+		if (_awards[_award_index] == _award_id) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/// Adds one role-based enemy award while rejecting a duplicate stable socket identity.
+function fps_run_award_enemy(_state, _kind, _room_id, _socket_id) {
+	var _award_id = fps_run_enemy_award_id(_room_id, _socket_id);
+	if (fps_run_has_score_award(_state.enemy_score_awards, _award_id)) {
+		return {awarded: false, points: 0};
+	}
+
+	var _points = fps_run_enemy_score(_kind);
+	if (_points <= 0) {
+		return {awarded: false, points: 0};
+	}
+
+	array_push(_state.enemy_score_awards, _award_id);
+	_state.score += _points;
+	return {awarded: true, points: _points};
+}
+
+/// Adds one room or finale bonus while rejecting a duplicate generated tile identity.
+function fps_run_award_room(_state, _room_id, _is_finale) {
+	var _award_id = string(_room_id);
+	if (fps_run_has_score_award(_state.room_score_awards, _award_id)) {
+		return {awarded: false, points: 0};
+	}
+
+	var _points = fps_run_room_score(_is_finale);
+	array_push(_state.room_score_awards, _award_id);
+	_state.score += _points;
+	return {awarded: true, points: _points};
 }
 
 /// Pauses an active run without changing its room or gameplay progress.

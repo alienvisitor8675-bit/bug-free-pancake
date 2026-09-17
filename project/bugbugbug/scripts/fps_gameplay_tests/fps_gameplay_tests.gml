@@ -488,6 +488,71 @@ suite(function() {
 			expect(_restart.rooms_cleared).toBe(0);
 		});
 
+		it("starts at zero and awards each enemy role exactly once", function() {
+			var _state = fps_run_begin(12345);
+			expect(_state.score).toBe(0);
+
+			var _chaser = fps_run_award_enemy(_state, FPS_ENEMY_KIND_CHASER, "sector-tile-3", "combat-chaser");
+			expect(_chaser.awarded).toBeTruthy();
+			expect(_chaser.points).toBe(FPS_RUN_SCORE_CHASER);
+			var _chaser_repeat = fps_run_award_enemy(_state, FPS_ENEMY_KIND_CHASER, "sector-tile-3", "combat-chaser");
+			expect(_chaser_repeat.awarded).toBeFalsy();
+			expect(_state.score).toBe(FPS_RUN_SCORE_CHASER);
+
+			var _ranged = fps_run_award_enemy(_state, FPS_ENEMY_KIND_RANGED, "sector-tile-3", "combat-ranged");
+			var _burrower = fps_run_award_enemy(_state, FPS_ENEMY_KIND_BURROWER, "sector-tile-4", "combat-burrower");
+			var _sentry = fps_run_award_enemy(_state, FPS_ENEMY_KIND_SENTRY, "sector-tile-4", "combat-sentry");
+			var _titan = fps_run_award_enemy(_state, FPS_ENEMY_KIND_TITAN, "sector-tile-6", "finale-enemy-2");
+			expect(_ranged.points).toBe(FPS_RUN_SCORE_RANGED);
+			expect(_burrower.points).toBe(FPS_RUN_SCORE_BURROWER);
+			expect(_sentry.points).toBe(FPS_RUN_SCORE_SENTRY);
+			expect(_titan.points).toBe(FPS_RUN_SCORE_TITAN);
+			expect(_state.score).toBe(
+				FPS_RUN_SCORE_CHASER
+					+ FPS_RUN_SCORE_RANGED
+					+ FPS_RUN_SCORE_BURROWER
+					+ FPS_RUN_SCORE_SENTRY
+					+ FPS_RUN_SCORE_TITAN
+			);
+		});
+
+		it("awards room and finale bonuses only once", function() {
+			var _state = fps_run_begin(12345);
+			var _room = fps_run_award_room(_state, "sector-tile-3", false);
+			expect(_room.awarded).toBeTruthy();
+			expect(_room.points).toBe(FPS_RUN_SCORE_ROOM_CLEAR);
+			var _room_repeat = fps_run_award_room(_state, "sector-tile-3", false);
+			expect(_room_repeat.awarded).toBeFalsy();
+			expect(_state.score).toBe(FPS_RUN_SCORE_ROOM_CLEAR);
+
+			var _finale = fps_run_award_room(_state, "sector-tile-6", true);
+			expect(_finale.awarded).toBeTruthy();
+			expect(_finale.points).toBe(FPS_RUN_SCORE_FINALE_CLEAR);
+			var _finale_repeat = fps_run_award_room(_state, "sector-tile-6", true);
+			expect(_finale_repeat.awarded).toBeFalsy();
+			expect(_state.score).toBe(FPS_RUN_SCORE_ROOM_CLEAR + FPS_RUN_SCORE_FINALE_CLEAR);
+		});
+
+		it("replays score events and resets score for a restarted seed", function() {
+			var _first = fps_run_begin(314159);
+			fps_run_award_enemy(_first, FPS_ENEMY_KIND_CHASER, "sector-tile-3", "combat-chaser");
+			fps_run_award_enemy(_first, FPS_ENEMY_KIND_TITAN, "sector-tile-6", "finale-enemy-2");
+			fps_run_award_room(_first, "sector-tile-3", false);
+			fps_run_award_room(_first, "sector-tile-6", true);
+
+			var _repeat = fps_run_begin(314159);
+			fps_run_award_enemy(_repeat, FPS_ENEMY_KIND_CHASER, "sector-tile-3", "combat-chaser");
+			fps_run_award_enemy(_repeat, FPS_ENEMY_KIND_TITAN, "sector-tile-6", "finale-enemy-2");
+			fps_run_award_room(_repeat, "sector-tile-3", false);
+			fps_run_award_room(_repeat, "sector-tile-6", true);
+			expect(_repeat.score).toBe(_first.score);
+
+			var _restart = fps_run_begin(_first.seed);
+			expect(_restart.score).toBe(0);
+			expect(array_length(_restart.enemy_score_awards)).toBe(0);
+			expect(array_length(_restart.room_score_awards)).toBe(0);
+		});
+
 		it("replays room plans and reward choices from the same seed and profile", function() {
 			var _profile = fps_profile_defaults();
 			var _sector = fps_sector_generate(314159, 1366, 768, 24, 200);
@@ -599,6 +664,35 @@ suite(function() {
 			expect(_controller.resume_run()).toBeTruthy();
 			expect(_controller.run_state).toBe(FPS_RUN_PLAYING);
 			expect(global.fps_run_paused).toBeFalsy();
+
+			_controller.run_contract = _previous_contract;
+			_controller.phase = _previous_phase;
+			_controller.run_started = _previous_run_started;
+			_controller.sync_run_contract();
+			_controller.set_mouse_capture(_previous_mouse_captured);
+		});
+	});
+});
+
+suite(function() {
+	describe("Run score controller integration", function() {
+		it("keeps score in the controller's run contract", function() {
+			var _controller = instance_find(obj_fps_controller, 0);
+			var _previous_contract = _controller.run_contract;
+			var _previous_phase = _controller.phase;
+			var _previous_run_started = _controller.run_started;
+			var _previous_mouse_captured = _controller.mouse_captured;
+
+			_controller.run_contract = fps_run_begin(24680);
+			_controller.run_contract.room_index = 2;
+			_controller.run_contract.room_complete = false;
+			_controller.phase = FPS_STATE_PLAYING;
+			_controller.run_started = true;
+			_controller.sync_run_contract();
+			expect(_controller.award_room_score(false)).toBeTruthy();
+			expect(_controller.run_contract.score).toBe(FPS_RUN_SCORE_ROOM_CLEAR);
+			expect(_controller.run_contract.rooms_cleared).toBe(0);
+			expect(_controller.run_contract.terminal_phase).toBe(FPS_STATE_PLAYING);
 
 			_controller.run_contract = _previous_contract;
 			_controller.phase = _previous_phase;
